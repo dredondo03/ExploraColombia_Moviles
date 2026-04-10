@@ -18,11 +18,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            LoginScreen(onLoginSuccess = {}, onNavigateToRegister = {})
 
         }
     }
 }
 
-@Composable
-@Preview(showSystemUi = true)
-fun HOla (){}
