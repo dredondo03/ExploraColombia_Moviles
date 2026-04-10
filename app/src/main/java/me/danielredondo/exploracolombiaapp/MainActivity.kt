@@ -11,6 +11,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import me.danielredondo.exploracolombiaapp.ui.theme.ExploraColombiaAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -18,7 +21,20 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            LoginScreen(onLoginSuccess = {}, onNavigateToRegister = {})
+            val myNavController = rememberNavController()
+
+            NavHost(
+                navController = myNavController,
+                startDestination = "login",
+                modifier = Modifier.fillMaxSize()
+            ) {
+                composable(route = "login"){
+                    LoginScreen(onLoginSuccess = {}, onNavigateToRegister = {})
+                }
+                composable(route = "register"){
+                    RegisterScreen(onRegisterSuccess = {}, onNavigateToLogin = {})
+                }
+            }
 
         }
     }
