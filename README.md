@@ -1,3 +1,4 @@
+![Image_20260410_165148_174](https://github.com/user-attachments/assets/ce3fd67f-c0e9-4ed3-b27a-1fbad00edeb7)
 # Explora Colombia App
 
 
@@ -5,4 +6,3 @@
 
 **Daniel Fernando Redondo Uribe**
 
-<img src="https://i.postimg.cc/mD4m3H9R/6c2834c1.jpg" width="200">
