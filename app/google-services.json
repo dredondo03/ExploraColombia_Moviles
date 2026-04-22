@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1091199386664",
+    "project_id": "loginexplora",
+    "storage_bucket": "loginexplora.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1091199386664:android:46ec9715b7e66598dfa11d",
+        "android_client_info": {
+          "package_name": "me.danielredondo.exploracolombiaapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDagCI4BKMEKrYlyXlMGip3xP5iKMyhbGI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

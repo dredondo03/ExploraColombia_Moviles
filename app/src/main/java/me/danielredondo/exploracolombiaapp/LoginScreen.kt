@@ -24,6 +24,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import me.danielredondo.exploracolombiaapp.ui.theme.ExploraColombiaAppTheme
 
 
@@ -32,6 +34,10 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
+    val auth = Firebase.auth
+
+    //ESTADO Para text on field
+    var inputEmail by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -187,7 +193,9 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Button(
-                    onClick = { onLoginSuccess() },
+                    onClick = {
+                        auth.signInWithEmailAndPassword(email, password)
+                        onLoginSuccess() },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
