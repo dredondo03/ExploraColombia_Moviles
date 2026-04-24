@@ -1,7 +1,11 @@
 package me.danielredondo.exploracolombiaapp
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -14,12 +18,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 
 sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
     object Home : Screen("home", "Inicio", Icons.Default.Home)
@@ -29,7 +36,7 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector)
 }
 
 @Composable
-fun MainScreen() {
+fun MainScreen(onLogout: () -> Unit) {
     val navController = rememberNavController()
     val items = listOf(
         Screen.Home,
@@ -75,10 +82,38 @@ fun MainScreen() {
             startDestination = Screen.Home.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Screen.Home.route) { PlaceholderScreen("Pantalla de Inicio") }
+            composable(Screen.Home.route) { 
+                val user = Firebase.auth.currentUser
+                val userName = user?.displayName ?: "Usuario"
+                PlaceholderScreen("Bienvenido, $userName") 
+            }
             composable(Screen.Explore.route) { PlaceholderScreen("Pantalla de Explorar") }
             composable(Screen.Favorites.route) { PlaceholderScreen("Pantalla de Favoritos") }
-            composable(Screen.Profile.route) { PlaceholderScreen("Pantalla de Perfil") }
+            composable(Screen.Profile.route) { 
+                ProfileScreen(onLogout = onLogout)
+            }
+        }
+    }
+}
+
+@Composable
+fun ProfileScreen(onLogout: () -> Unit) {
+    val user = Firebase.auth.currentUser
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "Perfil de Usuario", style = MaterialTheme.typography.headlineMedium)
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(text = "Email: ${user?.email ?: "N/A"}", color = Color.Gray)
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        Button(
+            onClick = onLogout,
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE45D25))
+        ) {
+            Text("Cerrar Sesión")
         }
     }
 }

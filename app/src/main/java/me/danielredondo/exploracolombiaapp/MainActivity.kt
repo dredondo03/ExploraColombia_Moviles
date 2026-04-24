@@ -17,11 +17,13 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        // iniciar instancia de firebase
         val auth = Firebase.auth
-        // forzar el cierre de inicio de sesiones
-        auth.signOut()
         
+        // ver si esta logeado
         val currentUser = auth.currentUser
+        
+        // si no hay usuario logeado se manda al login
         val startRoute = if (currentUser != null) "main" else "login"
 
         enableEdgeToEdge()
@@ -37,8 +39,9 @@ class MainActivity : ComponentActivity() {
                     composable(route = "login") {
                         LoginScreen(
                             onLoginSuccess = {
-                                myNavController.navigate("main") {
-                                    popUpTo("login") { inclusive = true }
+
+                                myNavController.navigate("main") { //cambiar la ruta a main
+                                    popUpTo("login") { inclusive = true } //limpieza
                                 }
                             },
                             onNavigateToRegister = {
@@ -49,9 +52,9 @@ class MainActivity : ComponentActivity() {
                     composable(route = "register") {
                         RegisterScreen(
                             onRegisterSuccess = {
-                                myNavController.navigate("main") {
+                                // si se registra se devuelve al login
+                                myNavController.navigate("login") {
                                     popUpTo("register") { inclusive = true }
-                                    popUpTo("login") { inclusive = true }
                                 }
                             },
                             onNavigateToLogin = {
@@ -63,7 +66,16 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     composable(route = "main") {
-                        MainScreen()
+                        MainScreen(
+                            onLogout = {
+                                // cerrar sesion, token de autentificacion
+                                auth.signOut()
+
+                                myNavController.navigate("login") {
+                                    popUpTo("main") { inclusive = true }
+                                }
+                            }
+                        )
                     }
                 }
             }

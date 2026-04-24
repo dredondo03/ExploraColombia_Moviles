@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import com.google.firebase.auth.userProfileChangeRequest
 import me.danielredondo.exploracolombiaapp.ui.theme.ExploraColombiaAppTheme
 
 
@@ -44,8 +45,10 @@ fun RegisterScreen(
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit = {}
 ) {
+   //inicia el firebase
     val auth = Firebase.auth
     val context = LocalContext.current
+    //obtiene lo que esta pasando y ayuda a acceder a r o navegar
 
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -69,283 +72,108 @@ fun RegisterScreen(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            IconButton(
-                onClick = onBackClick,
-                modifier = Modifier
-                    .align(Alignment.Start)
-                    .offset(x = (-12).dp),
-                enabled = !isLoading
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = null,
-                    tint = primaryOrange
-                )
+            // Icono atrás y textos (Omitidos por brevedad en comentarios)
+            IconButton(onClick = onBackClick, enabled = !isLoading) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = primaryOrange)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-            
-            Text(
-                text = "Explorando Colombia",
-                color = primaryOrange,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.Start)
-            )
+            Text(text = "Explorando Colombia", color = primaryOrange, fontSize = 22.sp, fontWeight = FontWeight.Bold)
 
             Spacer(modifier = Modifier.height(32.dp))
-
-            Text(
-                text = "Crea tu cuenta",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black,
-                modifier = Modifier.align(Alignment.Start)
-            )
-            Text(
-                text = "Empieza tu aventura por el realismo mágico",
-                fontSize = 16.sp,
-                color = Color.Gray,
-                modifier = Modifier
-                    .padding(top = 8.dp)
-                    .align(Alignment.Start)
-            )
+            Text(text = "Crea tu cuenta", fontSize = 32.sp, fontWeight = FontWeight.Bold)
 
             Spacer(modifier = Modifier.height(32.dp))
 
             Column(modifier = Modifier.fillMaxWidth()) {
-                RegisterField(
-                    label = "NOMBRE COMPLETO",
-                    value = name,
-                    onValueChange = { name = it },
-                    placeholder = "Tu nombre",
-                    leadingIcon = Icons.Default.Person,
-                    inputBg = inputBg,
-                    enabled = !isLoading
-                )
-
+                RegisterField(label = "NOMBRE COMPLETO", value = name, onValueChange = { name = it }, placeholder = "Tu nombre", leadingIcon = Icons.Default.Person, inputBg = inputBg, enabled = !isLoading)
                 Spacer(modifier = Modifier.height(20.dp))
-
-                RegisterField(
-                    label = "CORREO ELECTRÓNICO",
-                    value = email,
-                    onValueChange = { email = it },
-                    placeholder = "hola@ejemplo.com",
-                    leadingIcon = Icons.Default.Email,
-                    inputBg = inputBg,
-                    enabled = !isLoading
-                )
-
+                RegisterField(label = "CORREO ELECTRÓNICO", value = email, onValueChange = { email = it }, placeholder = "hola@ejemplo.com", leadingIcon = Icons.Default.Email, inputBg = inputBg, enabled = !isLoading)
                 Spacer(modifier = Modifier.height(20.dp))
-
-                RegisterField(
-                    label = "CONTRASEÑA",
-                    value = password,
-                    onValueChange = { password = it },
-                    placeholder = "........",
-                    leadingIcon = Icons.Default.Lock,
-                    inputBg = inputBg,
-                    isPassword = true,
-                    enabled = !isLoading
-                )
-
+                RegisterField(label = "CONTRASEÑA", value = password, onValueChange = { password = it }, placeholder = "........", leadingIcon = Icons.Default.Lock, inputBg = inputBg, isPassword = true, enabled = !isLoading)
                 Spacer(modifier = Modifier.height(20.dp))
-
-                RegisterField(
-                    label = "CONFIRMAR",
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
-                    placeholder = "........",
-                    leadingIcon = Icons.Default.Refresh,
-                    inputBg = inputBg,
-                    isPassword = true,
-                    enabled = !isLoading
-                )
+                RegisterField(label = "CONFIRMAR", value = confirmPassword, onValueChange = { confirmPassword = it }, placeholder = "........", leadingIcon = Icons.Default.Refresh, inputBg = inputBg, isPassword = true, enabled = !isLoading)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Checkbox(
-                    checked = acceptedTerms,
-                    onCheckedChange = { acceptedTerms = it },
-                    colors = CheckboxDefaults.colors(checkedColor = primaryOrange),
-                    enabled = !isLoading
-                )
-                Text(
-                    text = buildAnnotatedString {
-                        append("Acepto los ")
-                        withStyle(style = SpanStyle(color = primaryOrange, fontWeight = FontWeight.Bold)) {
-                            append("términos y condiciones")
-                        }
-                        append(" así como el tratamiento de datos personales.")
-                    },
-                    fontSize = 12.sp,
-                    color = Color.Gray,
-                    lineHeight = 16.sp
-                )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(checked = acceptedTerms, onCheckedChange = { acceptedTerms = it }, colors = CheckboxDefaults.colors(checkedColor = primaryOrange), enabled = !isLoading)
+                Text(text = "Acepto los términos y condiciones.", fontSize = 12.sp, color = Color.Gray)
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
                 onClick = {
-                    if (email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty() && name.isNotEmpty()) {
+                    if (email.isNotEmpty() && password.isNotEmpty() && name.isNotEmpty()) {
                         if (password == confirmPassword) {
                             if (acceptedTerms) {
                                 isLoading = true
+
+                                //registra el correo y la contra
                                 auth.createUserWithEmailAndPassword(email, password)
                                     .addOnCompleteListener { task ->
-                                        isLoading = false
                                         if (task.isSuccessful) {
-                                            Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT).show()
-                                            onRegisterSuccess()
+
+                                            //se pide el nombre para luego usarlo en el bienvenido
+                                            val profileUpdates = userProfileChangeRequest {
+                                                displayName = name
+                                            }
+                                            task.result.user?.updateProfile(profileUpdates)
+                                                ?.addOnCompleteListener {
+                                                    isLoading = false
+                                                    Toast.makeText(context, "Registro exitoso. Inicia sesión.", Toast.LENGTH_SHORT).show()
+                                                    //aqui hace un cerrar sesion rapido para volver al login y logearse de nuevo
+                                                    auth.signOut() 
+                                                    onRegisterSuccess()
+                                                }
                                         } else {
+                                            isLoading = false
                                             Toast.makeText(context, "Error: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                                         }
                                     }
                             } else {
-                                Toast.makeText(context, "Debes aceptar los términos y condiciones", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Acepta los términos", Toast.LENGTH_SHORT).show()
                             }
                         } else {
-                            Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Contraseñas no coinciden", Toast.LENGTH_SHORT).show()
                         }
                     } else {
-                        Toast.makeText(context, "Por favor completa todos los campos", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Completa todos los campos", Toast.LENGTH_SHORT).show()
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(64.dp),
+                modifier = Modifier.fillMaxWidth().height(64.dp),
                 shape = RoundedCornerShape(32.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                contentPadding = PaddingValues(),
                 enabled = !isLoading
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(primaryOrange, Color(0xFFFF8A65))
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                    } else {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Registrarse", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(24.dp))
-                        }
-                    }
+                if (isLoading) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                } else {
+                    Text("Registrarse", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                HorizontalDivider(modifier = Modifier.weight(1f), thickness = 0.5.dp, color = Color.LightGray)
-                Text(
-                    text = " O REGÍSTRATE CON ",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                )
-                HorizontalDivider(modifier = Modifier.weight(1f), thickness = 0.5.dp, color = Color.LightGray)
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                SocialButton(
-                    text = "Google",
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Default.Email
-                )
-                SocialButton(
-                    text = "Apple",
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Default.Lock
-                )
-            }
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            Row(modifier = Modifier.padding(bottom = 16.dp)) {
-                Text(text = "¿Ya tienes una cuenta? ", color = Color.Gray, fontSize = 14.sp)
-                Text(
-                    text = "Inicia sesión",
-                    color = primaryOrange,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable(enabled = !isLoading) { onNavigateToLogin() }
-                )
-            }
         }
     }
 }
 
 @Composable
-fun RegisterField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    leadingIcon: androidx.compose.ui.graphics.vector.ImageVector,
-    inputBg: Color,
-    modifier: Modifier = Modifier,
-    isPassword: Boolean = false,
-    enabled: Boolean = true
-) {
+fun RegisterField(label: String, value: String, onValueChange: (String) -> Unit, placeholder: String, leadingIcon: androidx.compose.ui.graphics.vector.ImageVector, inputBg: Color, modifier: Modifier = Modifier, isPassword: Boolean = false, enabled: Boolean = true) {
     Column(modifier = modifier) {
-        Text(
-            text = label,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Gray
-        )
+        Text(text = label, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
         Spacer(modifier = Modifier.height(8.dp))
         TextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .clip(RoundedCornerShape(28.dp)),
+            modifier = Modifier.fillMaxWidth().height(56.dp).clip(RoundedCornerShape(28.dp)),
             placeholder = { Text(placeholder, color = Color.Gray) },
             leadingIcon = { Icon(leadingIcon, contentDescription = null, tint = Color.Gray) },
             visualTransformation = if (isPassword) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
             keyboardOptions = KeyboardOptions(keyboardType = if (isPassword) KeyboardType.Password else KeyboardType.Text),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = inputBg,
-                unfocusedContainerColor = inputBg,
-                disabledContainerColor = inputBg,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            ),
+            colors = TextFieldDefaults.colors(focusedContainerColor = inputBg, unfocusedContainerColor = inputBg, disabledContainerColor = inputBg, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent),
             singleLine = true,
             enabled = enabled
         )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun RegisterScreenPreview() {
-    ExploraColombiaAppTheme {
-        RegisterScreen(onRegisterSuccess = {}, onNavigateToLogin = {})
     }
 }

@@ -57,7 +57,7 @@ fun LoginScreen(
                 .padding(bottom = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header Image with Rounded Corners
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
