@@ -1,5 +1,6 @@
 package me.danielredondo.exploracolombiaapp
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -21,7 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -31,6 +32,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import me.danielredondo.exploracolombiaapp.ui.theme.ExploraColombiaAppTheme
 
 
@@ -41,11 +44,15 @@ fun RegisterScreen(
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit = {}
 ) {
+    val auth = Firebase.auth
+    val context = LocalContext.current
+
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var acceptedTerms by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
 
     val primaryOrange = Color(0xFFE45D25)
     val lightGrayBg = Color(0xFFF8F9FE)
@@ -66,7 +73,8 @@ fun RegisterScreen(
                 onClick = onBackClick,
                 modifier = Modifier
                     .align(Alignment.Start)
-                    .offset(x = (-12).dp)
+                    .offset(x = (-12).dp),
+                enabled = !isLoading
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -112,7 +120,8 @@ fun RegisterScreen(
                     onValueChange = { name = it },
                     placeholder = "Tu nombre",
                     leadingIcon = Icons.Default.Person,
-                    inputBg = inputBg
+                    inputBg = inputBg,
+                    enabled = !isLoading
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -123,7 +132,8 @@ fun RegisterScreen(
                     onValueChange = { email = it },
                     placeholder = "hola@ejemplo.com",
                     leadingIcon = Icons.Default.Email,
-                    inputBg = inputBg
+                    inputBg = inputBg,
+                    enabled = !isLoading
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -135,7 +145,8 @@ fun RegisterScreen(
                     placeholder = "........",
                     leadingIcon = Icons.Default.Lock,
                     inputBg = inputBg,
-                    isPassword = true
+                    isPassword = true,
+                    enabled = !isLoading
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -147,7 +158,8 @@ fun RegisterScreen(
                     placeholder = "........",
                     leadingIcon = Icons.Default.Refresh,
                     inputBg = inputBg,
-                    isPassword = true
+                    isPassword = true,
+                    enabled = !isLoading
                 )
             }
 
@@ -160,7 +172,8 @@ fun RegisterScreen(
                 Checkbox(
                     checked = acceptedTerms,
                     onCheckedChange = { acceptedTerms = it },
-                    colors = CheckboxDefaults.colors(checkedColor = primaryOrange)
+                    colors = CheckboxDefaults.colors(checkedColor = primaryOrange),
+                    enabled = !isLoading
                 )
                 Text(
                     text = buildAnnotatedString {
@@ -179,13 +192,38 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = { onRegisterSuccess() },
+                onClick = {
+                    if (email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty() && name.isNotEmpty()) {
+                        if (password == confirmPassword) {
+                            if (acceptedTerms) {
+                                isLoading = true
+                                auth.createUserWithEmailAndPassword(email, password)
+                                    .addOnCompleteListener { task ->
+                                        isLoading = false
+                                        if (task.isSuccessful) {
+                                            Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT).show()
+                                            onRegisterSuccess()
+                                        } else {
+                                            Toast.makeText(context, "Error: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                                        }
+                                    }
+                            } else {
+                                Toast.makeText(context, "Debes aceptar los términos y condiciones", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(context, "Por favor completa todos los campos", Toast.LENGTH_SHORT).show()
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(64.dp),
                 shape = RoundedCornerShape(32.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                contentPadding = PaddingValues()
+                contentPadding = PaddingValues(),
+                enabled = !isLoading
             ) {
                 Box(
                     modifier = Modifier
@@ -197,10 +235,14 @@ fun RegisterScreen(
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Registrarse", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(24.dp))
+                    if (isLoading) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    } else {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Registrarse", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(24.dp))
+                        }
                     }
                 }
             }
@@ -249,7 +291,7 @@ fun RegisterScreen(
                     color = primaryOrange,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { onNavigateToLogin() }
+                    modifier = Modifier.clickable(enabled = !isLoading) { onNavigateToLogin() }
                 )
             }
         }
@@ -265,7 +307,8 @@ fun RegisterField(
     leadingIcon: androidx.compose.ui.graphics.vector.ImageVector,
     inputBg: Color,
     modifier: Modifier = Modifier,
-    isPassword: Boolean = false
+    isPassword: Boolean = false,
+    enabled: Boolean = true
 ) {
     Column(modifier = modifier) {
         Text(
@@ -293,7 +336,8 @@ fun RegisterField(
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent
             ),
-            singleLine = true
+            singleLine = true,
+            enabled = enabled
         )
     }
 }
@@ -301,7 +345,7 @@ fun RegisterField(
 @Preview(showBackground = true)
 @Composable
 fun RegisterScreenPreview() {
-    ExploraColombiaAppTheme(){
+    ExploraColombiaAppTheme {
         RegisterScreen(onRegisterSuccess = {}, onNavigateToLogin = {})
     }
 }

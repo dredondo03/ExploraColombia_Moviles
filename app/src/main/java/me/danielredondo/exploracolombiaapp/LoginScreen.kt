@@ -1,5 +1,6 @@
 package me.danielredondo.exploracolombiaapp
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -35,11 +37,11 @@ fun LoginScreen(
     onNavigateToRegister: () -> Unit
 ) {
     val auth = Firebase.auth
+    val context = LocalContext.current
 
-    //ESTADO Para text on field
-    var inputEmail by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
 
     val primaryOrange = Color(0xFFE45D25)
     val lightGrayBg = Color(0xFFF8F9FE)
@@ -62,7 +64,6 @@ fun LoginScreen(
                     .height(280.dp)
                     .clip(RoundedCornerShape(bottomStart = 60.dp, bottomEnd = 60.dp))
             ) {
-                // Placeholder for the landscape image
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -143,7 +144,8 @@ fun LoginScreen(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent
                     ),
-                    singleLine = true
+                    singleLine = true,
+                    enabled = !isLoading
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -177,7 +179,6 @@ fun LoginScreen(
                         .clip(RoundedCornerShape(28.dp)),
                     placeholder = { Text("........", color = Color.Gray) },
                     leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = Color.Gray) },
-                    trailingIcon = { Icon(Icons.Default.Home, contentDescription = null, tint = Color.Gray) },
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     colors = TextFieldDefaults.colors(
@@ -187,21 +188,36 @@ fun LoginScreen(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent
                     ),
-                    singleLine = true
+                    singleLine = true,
+                    enabled = !isLoading
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Button(
                     onClick = {
-                        auth.signInWithEmailAndPassword(email, password)
-                        onLoginSuccess() },
+                        if (email.isNotEmpty() && password.isNotEmpty()) {
+                            isLoading = true
+                            auth.signInWithEmailAndPassword(email, password)
+                                .addOnCompleteListener { task ->
+                                    isLoading = false
+                                    if (task.isSuccessful) {
+                                        onLoginSuccess()
+                                    } else {
+                                        Toast.makeText(context, "Error: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                        } else {
+                            Toast.makeText(context, "Por favor completa todos los campos", Toast.LENGTH_SHORT).show()
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                    contentPadding = PaddingValues()
+                    contentPadding = PaddingValues(),
+                    enabled = !isLoading
                 ) {
                     Box(
                         modifier = Modifier
@@ -213,10 +229,14 @@ fun LoginScreen(
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Iniciar Sesión", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(20.dp))
+                        if (isLoading) {
+                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        } else {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("Iniciar Sesión", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(20.dp))
+                            }
                         }
                     }
                 }
@@ -261,7 +281,7 @@ fun LoginScreen(
                     color = primaryOrange,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { onNavigateToRegister() }
+                    modifier = Modifier.clickable(enabled = !isLoading) { onNavigateToRegister() }
                 )
             }
         }
@@ -287,7 +307,7 @@ fun SocialButton(text: String, modifier: Modifier = Modifier, icon: androidx.com
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    ExploraColombiaAppTheme(){
+    ExploraColombiaAppTheme {
         LoginScreen(onLoginSuccess = {}, onNavigateToRegister = {})
     }
 }
