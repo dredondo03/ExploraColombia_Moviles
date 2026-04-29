@@ -67,4 +67,7 @@ dependencies {
     implementation (libs.androidx.navigation.compose)
     //Firebase
     implementation(platform("com.google.firebase:firebase-bom:34.12.0"))
+
+    //View models
+    implementation("adroidx.lifecycle:lifecycle-viewmodel-compose:2.10.1")
 }

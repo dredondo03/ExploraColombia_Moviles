@@ -1,4 +1,4 @@
-package me.danielredondo.exploracolombiaapp.ui.viewmodels
+package me.danielredondo.exploracolombiaapp
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
