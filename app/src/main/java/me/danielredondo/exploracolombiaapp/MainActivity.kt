@@ -12,10 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import kotlinx.serialization.Serializable
-import me.danielredondo.exploracolombiaapp.ui.elements.LoginScreen
-import me.danielredondo.exploracolombiaapp.ui.elements.MainScreen
-import me.danielredondo.exploracolombiaapp.ui.elements.RegisterScreen
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import me.danielredondo.exploracolombiaapp.ui.theme.ExploraColombiaAppTheme
 
 // Definición de rutas como objetos serializables (Type Safety)
@@ -26,6 +24,16 @@ import me.danielredondo.exploracolombiaapp.ui.theme.ExploraColombiaAppTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // iniciar instancia de firebase
+        val auth = Firebase.auth
+        
+        // ver si esta logeado
+        val currentUser = auth.currentUser
+        
+        // si no hay usuario logeado se manda al login
+        val startRoute = if (currentUser != null) "main" else "login"
+
         enableEdgeToEdge()
         setContent {
             ExploraColombiaAppTheme {
@@ -34,16 +42,16 @@ class MainActivity : ComponentActivity() {
 
                 NavHost(
                     navController = myNavController,
-                    startDestination = LoginRoute, // Referencia al objeto
+                    startDestination = startRoute,
                     modifier = Modifier.fillMaxSize()
                 ) {
                     // Pantalla de Login
                     composable<LoginRoute> {
                         LoginScreen(
                             onLoginSuccess = {
-                                // Navega a Main y limpia el historial para que no pueda volver al Login
-                                myNavController.navigate(MainRoute) {
-                                    popUpTo(LoginRoute) { inclusive = true }
+
+                                myNavController.navigate("main") { //cambiar la ruta a main
+                                    popUpTo("login") { inclusive = true } //limpieza
                                 }
                             },
                             onNavigateToRegister = {
@@ -56,8 +64,9 @@ class MainActivity : ComponentActivity() {
                     composable<RegisterRoute> {
                         RegisterScreen(
                             onRegisterSuccess = {
-                                myNavController.navigate(MainRoute) {
-                                    popUpTo(LoginRoute) { inclusive = true }
+                                // si se registra se devuelve al login
+                                myNavController.navigate("login") {
+                                    popUpTo("register") { inclusive = true }
                                 }
                             },
                             onNavigateToLogin = {
@@ -71,10 +80,17 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     }
+                    composable(route = "main") {
+                        MainScreen(
+                            onLogout = {
+                                // cerrar sesion, token de autentificacion
+                                auth.signOut()
 
-                    // Pantalla Principal (Main)
-                    composable<MainRoute> {
-                        MainScreen()
+                                myNavController.navigate("login") {
+                                    popUpTo("main") { inclusive = true }
+                                }
+                            }
+                        )
                     }
                 }
             }
