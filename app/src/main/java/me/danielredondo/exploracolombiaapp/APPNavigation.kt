@@ -13,6 +13,7 @@ import me.danielredondo.exploracolombiaapp.LoginScreen
 import me.danielredondo.exploracolombiaapp.ui.elements.MainScreen
 import me.danielredondo.exploracolombiaapp.ui.elements.RegisterScreen
 import me.danielredondo.exploracolombiaapp.ui.elements.AddPlaceScreen
+import me.danielredondo.exploracolombiaapp.ui.elements.LoginScreen
 
 @Composable
 fun AppNavigation(

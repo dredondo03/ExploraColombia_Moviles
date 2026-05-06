@@ -1,5 +1,6 @@
 package me.danielredondo.exploracolombiaapp.ui.elements
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -15,19 +16,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import me.danielredondo.exploracolombiaapp.ui.viewmodels.AddPlaceViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddPlaceScreen(onBackClick: () -> Unit) {
-    var placeName by remember { mutableStateOf("") }
-    var department by remember { mutableStateOf("") }
-    var city by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-
+fun AddPlaceScreen(
+    onBackClick: () -> Unit,
+    addPlaceViewModel: AddPlaceViewModel = viewModel()
+) {
+    val context = LocalContext.current
     val primaryOrange = Color(0xFFE45D25)
     val secondaryOrange = Color(0xFFD1451B)
     val lightGrayBg = Color(0xFFF8F9FE)
@@ -38,7 +41,7 @@ fun AddPlaceScreen(onBackClick: () -> Unit) {
             TopAppBar(
                 title = {
                     Text(
-                        "Add Place",
+                        "Agregar Lugar",
                         color = Color(0xFF8B2D16),
                         fontWeight = FontWeight.Bold
                     )
@@ -105,32 +108,32 @@ fun AddPlaceScreen(onBackClick: () -> Unit) {
             Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                 PlaceInputField(
                     label = "NOMBRE DEL LUGAR",
-                    value = placeName,
-                    onValueChange = { placeName = it },
+                    value = addPlaceViewModel.placeName,
+                    onValueChange = { addPlaceViewModel.onPlaceNameChange(it) },
                     placeholder = "Ej: Cascada del Fin del Mundo",
                     inputBg = inputBg
                 )
 
                 PlaceInputField(
                     label = "DEPARTAMENTO",
-                    value = department,
-                    onValueChange = { department = it },
+                    value = addPlaceViewModel.department,
+                    onValueChange = { addPlaceViewModel.onDepartmentChange(it) },
                     placeholder = "Ej: Putumayo",
                     inputBg = inputBg
                 )
 
                 PlaceInputField(
                     label = "CIUDAD",
-                    value = city,
-                    onValueChange = { city = it },
+                    value = addPlaceViewModel.city,
+                    onValueChange = { addPlaceViewModel.onCityChange(it) },
                     placeholder = "Ej: Mocoa",
                     inputBg = inputBg
                 )
 
                 PlaceInputField(
                     label = "DESCRIPCIÓN",
-                    value = description,
-                    onValueChange = { description = it },
+                    value = addPlaceViewModel.description,
+                    onValueChange = { addPlaceViewModel.onDescriptionChange(it) },
                     placeholder = "Cuéntanos por qué este lugar es especial...",
                     inputBg = inputBg,
                     singleLine = false,
@@ -142,7 +145,12 @@ fun AddPlaceScreen(onBackClick: () -> Unit) {
 
             // Botón Publicar
             Button(
-                onClick = { /* Lógica para guardar el lugar */ },
+                onClick = {
+                    addPlaceViewModel.savePlace {
+                        Toast.makeText(context, "¡Lugar publicado con éxito!", Toast.LENGTH_SHORT).show()
+                        onBackClick()
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp),
